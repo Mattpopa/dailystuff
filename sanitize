@@ -1,20 +1,17 @@
-#!/bin/bash
-backup="/tmp/giggity_IP"
-ipreg="[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}"
-
-egrep $ipreg $1 -nR | grep -v "127\.0\." | grep -v "0\.0\.0\.0" | cut -d: -f1,2 > $backup
-
+#!/bin/bash  
+backup='/tmp/giggity_IP'
+ipreg='(\b[0-9]{1,3}\.){3}[0-9]{1,3}\b'
+	egrep $ipreg $2 -nR | grep -v "127\.0\." | grep -v "0\.0\.0\.0" | cut -d: -f1,3 > $backup
 case "$1" in
-'ips')
-	sed -i 's/$ipreg/giggity_IP/g' $2 && echo "IPs from $2 have been removed"
+	'ips')
+		cat $backup | cut -d: -f1 | xargs sed -r -i "s/$ipreg/giggity_IP/g" && echo -e "IPs from $2 have been removed \n\n more details at $backup"
 	;;
-
-'restore')
-	for i j in $backup; do
-		sed -i 's/giggity_IP/$j/g' $i && echo "Production IPs have been restored"
-	done
+	'restore')
+		for i in `cat $backup| cut -d:1 -f1`; do
+			sed -r -i "s/giggity_IP/$j/g" $i && echo -e "Production IPs have been restored"
+		done
 	;;
-*)
-	echo "Usage: $0 { ips | restore }"
+	*)
+		echo -e  "\nUsage: $0 { ips | restore } followed by /mpath/to/sanitize_or_restore_to \n\n eg: sanitize ips /mpath/to/project\n\n"
 	;;
 esac
